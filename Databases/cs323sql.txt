@@ -1,0 +1,844 @@
+drop view StaffComputerTasks;
+drop view VolunteerInfo;
+drop view OutPatientNotVisited;
+drop view CareCenterBedsView;
+drop view CareCenterTakenBed;
+drop view CareCenterTotalBed;
+drop view EmployeesHired;
+drop view GoodTechnician;
+drop view NursesInCharge;
+drop table LabAssigned;
+drop table Residents;
+drop table Volunteer;
+drop table Bed;
+drop table NurseInCharge;
+drop table RegisteredNurse;
+drop table Nurse;
+drop table CareCenter;
+drop table SkillsTechnician;
+drop table Technician;
+drop table Degree;
+drop table Staff;
+drop table Comments;
+drop table Visits;
+drop table Symptoms;
+drop table VisitorData;
+drop table Visitor;
+drop table Outpatients;
+drop table Patients;
+drop table SkillsVolunteer;
+drop table Lab;
+drop table Insurance;
+drop table Facilities;
+drop table Physician;
+drop table Employee;
+drop table People;
+drop table ZipLocation;
+
+
+
+
+--DDL Start-------------------------------------------------------------------
+
+create table ZipLocation(
+    zipcode   int(5)    NOT NULL,
+    city  VARCHAR(40)   NOT NULL,
+    state  VARCHAR(40)  NOT NULL,
+    PRIMARY KEY (zipcode)
+);
+
+create table People(
+    personID    varchar(10) not null,
+    zipcode     int(5)  not null,
+    street      varchar(40) not null,
+    firstName   varchar(30) not null,
+    lastname    varchar(30) not null,
+    phone       varchar(12) not null,
+    DOB date not null,
+    primary key (personID),
+    foreign key (zipcode) references ZipLocation(zipcode)
+);
+
+create table Employee(
+    employeeID varchar(10) not null,
+    hireDate date not null,
+    primary key (employeeID),
+    foreign key (employeeID) references People(personID)
+);
+    
+create table Physician(
+    physicianID varchar(10) not null,
+    specialty varchar(40) not null,
+    pagerNunmber varchar(10) not null, 
+    primary key (physicianID),
+    foreign key (physicianID) references People(personID)
+);
+
+create table Facilities (
+    facilitiesID    INTEGER NOT NULL,
+    name        VARCHAR(25) NOT NULL,
+    location    VARCHAR(25) NOT NULL,
+    PRIMARY KEY (facilitiesID)
+);
+
+create table Insurance (
+    medicalID       INTEGER     NOT NULL,
+    insuranceName   VARCHAR(40) NOT NULL,
+    PRIMARY KEY(medicalID)
+);
+
+create table Lab (
+    facilitiesID    INTEGER NOT NULL,
+    room        INTEGER NOT NULL,
+    PRIMARY KEY(facilitiesID),
+    FOREIGN KEY(facilitiesID) REFERENCES Facilities(facilitiesID) 
+);
+
+create table SkillsVolunteer(
+    volunteerID varchar(10) not null,
+    skill   varchar(40) not null,
+    primary key (volunteerID, skill)
+);
+
+create table Patients(
+    patientID   varchar(10) NOT NULL,
+    physicianID varchar(10) NOT NULL,
+    medicalID   integer     NOT NULL,
+    contactDate date NOT NULL,
+    PRIMARY KEY (patientID),
+    foreign key (patientID) references People(personID),
+    foreign key (physicianID) references Physician(physicianID),
+    foreign key (medicalID) references Insurance(medicalID)
+);
+
+create table Outpatients
+(
+    patientID   varchar(10) NOT NULL,
+    visitReason   varchar(40) NOT NULL,
+    PRIMARY KEY (patientID, visitReason),
+    Foreign Key (patientID) References  Patients(patientID)
+);
+
+create table Visitor
+(
+    visitorID         varchar(10)   NOT NULL,
+    visitorName       varchar(20)   NOT NULL,
+    visitorPhone      varchar(11)   NOT NULL,
+    PRIMARY KEY (visitorID)
+);
+
+create table VisitorData
+(
+    visitorID   varchar(10) NOT NULL,
+    patientID   varchar(10) NOT NULL,
+    visitorDate date,
+    PRIMARY KEY (patientID, visitorDate),
+    Foreign Key (visitorID) References  Visitor(visitorID),
+    Foreign Key (patientID) References  Patients(patientID)
+);
+
+create table Symptoms
+(
+    patientID   varchar(10) NOT NULL,
+    symptoms    varchar(20) NOT NULL,
+    PRIMARY KEY (patientID, symptoms),
+    Foreign Key (patientID) References  Patients(patientID)
+);
+
+create table Visits
+(
+ physicianID VARCHAR(10) NOT NULL,
+ patientID VARCHAR(10) NOT NULL,
+ visitReason VARCHAR(60) NOT NULL,
+ visitDate    date NOT NULL,
+ PRIMARY KEY (patientID, visitDate),
+ FOREIGN KEY (patientID,visitReason) REFERENCES Outpatients(patientID,visitReason),
+ FOREIGN KEY (physicianID) REFERENCES Physician(physicianID)
+);
+
+create table Comments
+(
+  patientID VARCHAR(10) NOT NULL,
+  visitDate date not null,
+  comments    VARCHAR(60) NOT NULL, 
+  PRIMARY KEY (patientID,visitDate, comments),
+  FOREIGN KEY (patientID, visitDate) REFERENCES Visits(patientID, visitDate)
+);
+
+create table Staff(
+    staffID VARCHAR(10) NOT NULL,
+    jobClass VARCHAR(25) NOT NULL,
+    PRIMARY KEY(staffID),
+    FOREIGN KEY(staffID) REFERENCES Employee(employeeID)
+);
+    
+create table Degree(
+    staffID VARCHAR(10) NOT NULL,
+    degree VARCHAR(25) NOT NULL,
+    PRIMARY KEY(staffID),
+    FOREIGN KEY(staffID) REFERENCES Staff(staffID)
+);
+
+create table Technician(
+    technicianID VARCHAR(10) NOT NULL,
+    certification VARCHAR(25) NOT NULL,
+    PRIMARY KEY(technicianID),
+    FOREIGN KEY(technicianID) REFERENCES Employee(employeeID)
+);
+
+create table SkillsTechnician(
+    technicianID VARCHAR(10) NOT NULL,
+    skill VARCHAR(25) NOT NULL,
+    PRIMARY KEY(technicianID, skill),
+    FOREIGN KEY(technicianID) REFERENCES Technician(technicianID)
+);
+
+create table CareCenter (
+    facilitiesID    INTEGER NOT NULL,
+    carecenterType  VARCHAR(25) NOT NULL,
+    PRIMARY KEY(facilitiesID),
+    FOREIGN KEY(facilitiesID) REFERENCES Facilities(facilitiesID)
+);
+
+create table Nurse(
+    nurseID VARCHAR(10) NOT NULL,
+    facilitiesID INT NOT NULL,
+    certificate VARCHAR(25) NOT NULL,
+    headNurseID VARCHAR(10),
+    PRIMARY KEY(nurseID),
+    FOREIGN KEY(headNurseID) REFERENCES Nurse(nurseID),
+    FOREIGN KEY(nurseID) REFERENCES Employee(employeeID),
+    FOREIGN KEY(facilitiesID) REFERENCES CareCenter(facilitiesID)
+);
+
+CREATE TABLE RegisteredNurse(
+    rNurseID VARCHAR(10) NOT NULL,
+    degree VARCHAR(25) NOT NULL,
+    PRIMARY KEY(rNurseID),
+    FOREIGN KEY(rNurseID) REFERENCES Nurse(nurseID)
+);
+
+create table NurseInCharge(
+    rNurseID VARCHAR(10) NOT NULL,
+    facilitiesID INTEGER NOT NULL,
+    PRIMARY KEY(rNurseID, facilitiesID),
+    FOREIGN KEY(rNurseID) REFERENCES RegisteredNurse(rNurseID),
+    FOREIGN KEY(facilitiesID) REFERENCES CareCenter(facilitiesID)
+);
+
+create table Bed (
+    facilitiesID    INTEGER NOT NULL,
+    bedNumber       INTEGER NOT NULL,
+    roomNumber      INTEGER NOT NULL,
+    PRIMARY KEY(facilitiesID, bedNumber,roomNumber),
+    FOREIGN KEY(facilitiesID) REFERENCES CareCenter(facilitiesID)
+);
+
+create table Volunteer(
+    volunteerID varchar(10) not null,
+    facilitiesID integer not null,
+    primary key (volunteerID),
+    foreign key (volunteerID) references People(personID),
+    foreign key (facilitiesID) references CareCenter(facilitiesID)
+);
+
+create table Residents
+(
+    patientID        varchar(10) NOT NULL,
+    facilitiesID     integer NOT NULL,
+    bedNumber        integer NOT NULL,
+    admitted         date,
+    roomNumber       integer NOT NULL,
+    PRIMARY KEY (patientID,admitted),
+    Foreign Key (patientID) References  Patients(patientID),
+    Foreign Key (facilitiesID,bedNumber,roomNumber) References Bed(facilitiesID,bedNumber,roomNumber)
+);
+
+create table LabAssigned(
+    technicianID VARCHAR(10) NOT NULL,
+    facilitiesID INT NOT NULL,
+    department VARCHAR(25) NOT NULL,
+    PRIMARY KEY(technicianID,facilitiesID),
+    FOREIGN KEY(technicianID) REFERENCES Technician(technicianID),
+    FOREIGN KEY(facilitiesID) REFERENCES Lab(facilitiesID)
+);
+
+
+--DDL End -------------------------------------------------------------------
+
+
+
+--DML Start -------------------------------------------------------------------
+
+INSERT INTO ZipLocation VALUES('90808', 'Long Beach', 'California');
+INSERT INTO ZipLocation VALUES('90806', 'Long Beach', 'California');
+INSERT INTO ZipLocation VALUES('90813', 'Long Beach', 'California');
+INSERT INTO ZipLocation VALUES('90802', 'Long Beach', 'California');
+INSERT INTO ZipLocation VALUES('91913', 'Chula Vista', 'California');
+INSERT INTO ZipLocation VALUES('91950', 'National City', 'California');
+INSERT INTO ZipLocation VALUES('10021', 'New York', 'New York');
+INSERT INTO ZipLocation VALUES('90912', 'Seal Beach', 'California');
+
+
+INSERT INTO People VALUES('P111', '90808', 'Tiger Ave', 'Tony', 'the Tiger', '611-372-1272', '1941-10-20');
+INSERT INTO People VALUES('P222', '90808', 'Palos Ave', 'Billy', 'Bob', '513-731-5572', '1976-08-04');
+INSERT INTO People VALUES('P333', '90808', 'Green Ave', 'Tim', 'Tom', '211-448-2272', '1988-10-23');
+INSERT INTO People VALUES('P444', '90808', 'Yellow Ave', 'Cesar', 'Salad', '301-766-1372', '1998-01-04');
+INSERT INTO People VALUES('P555', '90808', 'Pink Ave', 'Nick', 'Knack', '722-734-4412', '2011-11-11');
+INSERT INTO People VALUES('P666', '90808', 'Black Ave', 'Tom', 'Ato', '730-118-4266', '2012-02-03');
+INSERT INTO People VALUES('P777', '90808', 'Orange Ave', 'Peter', 'Stamos', '702-338-1127', '1994-06-04');
+INSERT INTO People VALUES('P888', '90808', 'Brown Ave', 'Rick', 'Masters', '661-378-1122', '2011-11-11');
+INSERT INTO People VALUES('P999', '90808', 'River Ave', 'Michael', 'Philips', '444-178-2271', '2009-08-11');
+INSERT INTO People VALUES('P122', '90808', 'Nile Ave', 'Will', 'WIllis', '889-713-1172', '2013-12-11');
+INSERT INTO People VALUES('P123', '90808', 'North Ave', 'Bobby', 'Stamos', '889-713-1555', '2000-10-11');
+INSERT INTO People VALUES('P124', '90808', 'South Ave', 'Ray', 'Palm', '887-713-1432', '2001-11-11');
+INSERT INTO People VALUES('P125', '90808', 'East Ave', 'Greg', 'Lance', '885-713-8762', '1998-10-17');
+INSERT INTO People VALUES('P126', '90808', 'West Ave', 'Sarah', 'Jacob', '849-713-1992', '1997-07-08');
+INSERT INTO People VALUES('P127', '90808', 'UP Ave', 'Susy', 'West', '889-743-1172', '1996-04-11');
+INSERT INTO People VALUES('P128', '90808', 'Down Ave', 'Carlos', 'Allen', '289-723-2272', '1992-10-31');
+
+--Physician Person
+INSERT INTO People VALUES('PH11', '90813', 'Awesome Ave', 'Dr. Luis', 'Rodriguez', '512-327-1275', '1993-04-27');
+INSERT INTO People VALUES('PH22', '90813', 'Red Avenue', 'Bob', 'Thorn', '550-173-6272', '1977-03-21');
+INSERT INTO People VALUES('PH33', '90813', 'Blue Ave', 'Joe', 'Jack', '912-473-1273', '1973-05-23');
+INSERT INTO People VALUES('PH44', '90813', 'Purple Ave', 'Chelsea', 'Chello', '211-338-1273', '1987-05-21');
+
+INSERT INTO People VALUES('PH55', '90813', 'Awesome Ave', 'Lenny', 'Ron', '512-327-1235', '1983-04-27');
+INSERT INTO People VALUES('PH66', '90813', 'Pat Avenue', 'Bill', 'Doe', '540-173-6272', '1977-03-21');
+INSERT INTO People VALUES('PH77', '90813', 'Black Ave', 'James', 'Jack', '912-473-1773', '1971-05-23');
+INSERT INTO People VALUES('PH88', '90813', 'Pepe Ave', 'Lindsay', 'Chello', '211-338-1273', '1997-05-21');
+
+
+--dates are year-month-date
+--populate some employees
+INSERT INTO People VALUES('E1001', '90808', 'Marber Ave', 'Anthony', 'Martinez', '714-778-9272', '1960-12-20');
+INSERT INTO People VALUES('E1002', '90813', 'Ash Ave', 'Jilian', 'Archer', '714-472-5272','1980-12-10');
+INSERT INTO People VALUES('E1003', '90806', 'Bellflower Ave', 'Kobe', 'Bryant','602-978-5172', '1977-02-21');
+INSERT INTO People VALUES('E1004', '90813', 'Pine Ave', 'Julio', 'Chavez', '415-728-9579','1985-05-13');
+INSERT INTO People VALUES('E1005', '90802', 'Market Ave', 'Jon', 'Jones', '511-828-3472', '1989-07-27');
+
+INSERT INTO Employee VALUES('E1001', '2014-01-10');
+INSERT INTO Employee VALUES('E1002', '2014-06-15');
+INSERT INTO Employee VALUES('E1003', '2014-010-08');
+INSERT INTO Employee VALUES('E1004', '2015-01-06');
+INSERT INTO Employee VALUES('E1005', '2015-04-19');
+
+INSERT INTO Staff VALUES('E1001', 'Receptionist');
+INSERT INTO Staff VALUES('E1002', 'Receptionist');
+INSERT INTO Technician VALUES('E1003', 'Cardiology');
+INSERT INTO Technician VALUES('E1004', 'IT');
+INSERT INTO Technician VALUES('E1005', 'Radiology');
+
+INSERT INTO Degree VALUES ('E1001', 'English');
+INSERT INTO Degree VALUES ('E1002', 'Math');
+
+INSERT INTO SkillsTechnician VALUES('E1004', 'Troubleshooting');
+INSERT INTO SkillsTechnician VALUES('E1004', 'Communication');
+INSERT INTO SkillsTechnician VALUES('E1005', 'Data Entry');
+
+--some physicinas
+INSERT INTO People VALUES('P1001', '90808', 'Bell Ave', 'Harrison', 'Barnes', '922-552-7172', '1977-11-20');
+INSERT INTO People VALUES('P1002', '90813', 'Wardlow Ave', 'Andrew', 'Bogut', '932-678-4472', '1981-08-10');
+INSERT INTO People VALUES('P1003', '90806', 'Xemion Ave', 'Ian', 'Clark', '448-675-5271', '1979-02-25');
+INSERT INTO People VALUES('P1004', '90802', 'Florence Ave', 'Stephen', 'Curry', '882-748-1273', '1984-03-13');
+INSERT INTO People VALUES('P1005', '90912', 'Pacific Ave', 'Klay', 'Thompson', '901-708-3271', '1989-05-27');
+
+INSERT INTO Physician VALUES('P1001', 'Family Medicine', '5629851111');
+INSERT INTO Physician VALUES('P1002', 'Cardiology', '5629851112');
+INSERT INTO Physician VALUES('P1003', 'Neurology', '5629851113');
+INSERT INTO Physician VALUES('P1004', 'Orthopedic Surgery', '5629851114');
+INSERT INTO Physician VALUES('P1005', 'General Surgery', '5629851115');
+
+-- insurance
+INSERT INTO Insurance VALUES(22333, 'Health Net');
+INSERT INTO Insurance VALUES(59566, 'Kaiser Permanente');
+INSERT INTO Insurance VALUES(99888, 'Molina Healthcare');
+INSERT INTO Insurance VALUES(33568, 'Anthem Blue Cross and Blue Shield');
+INSERT INTO Insurance VALUES(11230, 'UnitedHealth Group');
+INSERT INTO Insurance VALUES(14237, 'AARP');
+INSERT INTO Insurance VALUES(00000, 'NONE');
+
+-- facilities
+-- care center
+INSERT INTO Facilities VALUES('998742', 'Primary', '2nd Floor');
+INSERT INTO Facilities VALUES('845614', 'Secondary', '3rd Floor');
+INSERT INTO Facilities VALUES('564122', 'Tertiary', '4th Floor');
+
+INSERT INTO CareCenter VALUES('998742', 'Neurology Center');
+INSERT INTO CareCenter VALUES('845614', 'Oncology Center');
+INSERT INTO CareCenter VALUES('564122', 'Trauma Center');
+
+-- facilities
+-- lab
+INSERT INTO Facilities VALUES('456123', 'Blood Works', '1st Floor');
+INSERT INTO Facilities VALUES('615489', 'Disease Center', '2nd Floor');
+INSERT INTO Facilities VALUES('154852', 'Medical Equipment Testing', '3rd Floor');
+
+INSERT INTO Lab VALUES('456123', '035');
+INSERT INTO Lab VALUES('615489', '008');
+INSERT INTO Lab VALUES('154852', '004');
+
+INSERT INTO LabAssigned VALUES('E1003', '456123', 'Radiology');
+INSERT INTO LabAssigned VALUES('E1005', '615489', 'IT');
+INSERT INTO LabAssigned VALUES('E1003', '615489', 'Equipment');
+
+INSERT INTO LabAssigned VALUES('E1004', '615489', 'IT');
+INSERT INTO LabAssigned VALUES('E1004', '154852', 'Equipment');
+
+--volunteers
+INSERT INTO People VALUES('V1001', '90806', '778 Hawk Ave', 'Tim', 'Duncan', '715-273-1272', '1977-05-02');
+INSERT INTO People VALUES('V1002', '90813', '120 Willow Ave', 'LaMarcus', 'Aldridge', '712-138-9072', '1990-08-10');
+INSERT INTO People VALUES('V1003', '90806', '3245 Spring Ave', 'Tony', 'Parker', '713-128-9572', '1978-04-25');
+INSERT INTO People VALUES('V1004', '90802', '566 11th St', 'Andre', 'Miller', '714-773-9201', '1984-03-13');
+INSERT INTO People VALUES('V1005', '90912', '779 Brea Ave', 'David', 'West', '881-721-9371', '1984-05-27');
+
+INSERT INTO Volunteer VALUES('V1001', '998742');
+INSERT INTO Volunteer VALUES('V1002', '845614');
+INSERT INTO Volunteer VALUES('V1003', '998742');
+INSERT INTO Volunteer VALUES('V1004', '998742');
+INSERT INTO Volunteer VALUES('V1005','845614');
+INSERT INTO Volunteer VALUES('P555', '845614');
+INSERT INTO Volunteer VALUES('P777', '998742');
+
+
+INSERT INTO SkillsVolunteer VALUES('V1001', 'Data Entry');
+INSERT INTO SkillsVolunteer VALUES('V1002', 'Web Design');
+INSERT INTO SkillsVolunteer VALUES('V1002', 'Database Design');
+INSERT INTO SkillsVolunteer VALUES('V1003', 'Troubleshooting');
+
+-- bed
+INSERT INTO Bed VALUES('998742', 01, 200);
+INSERT INTO Bed VALUES('998742', 02, 201);
+INSERT INTO Bed VALUES('998742', 03, 202);
+INSERT INTO Bed VALUES('845614', 01, 300);
+INSERT INTO Bed VALUES('845614', 02, 301);
+INSERT INTO Bed VALUES('845614', 03, 302);
+INSERT INTO Bed VALUES('564122', 01, 400);
+INSERT INTO Bed VALUES('564122', 02, 401);
+INSERT INTO Bed VALUES('564122', 03, 402);
+
+--Physician ID
+-- Using for Resident Physician
+INSERT INTO Physician VALUES ('PH11', 'Cancer', '1');
+INSERT INTO Physician VALUES ('PH22', 'Heart', '2');
+-- Using for Outpatient physician
+INSERT INTO Physician VALUES ('PH33', 'Lungs', '3');
+INSERT INTO Physician VALUES ('PH44', 'Faking', '4');
+
+INSERT INTO Physician VALUES ('PH55', 'Feet', '5');
+INSERT INTO Physician VALUES ('PH66', 'Bones', '6');
+INSERT INTO Physician VALUES ('PH77', 'Arms', '7');
+INSERT INTO Physician VALUES ('PH88', 'Back', '8');
+
+--patients
+--will be used for residents
+INSERT INTO Patients VALUES('P111', 'PH11', 22333, '2015-11-11');
+INSERT INTO Patients VALUES('P222', 'PH33', 59566, '2015-11-12');
+INSERT INTO Patients VALUES('P333', 'PH33', 99888, '2015-11-14');
+INSERT INTO Patients VALUES('P444', 'PH11', 59566, '2015-11-13');
+INSERT INTO Patients VALUES('P555', 'PH11', 33568, '2015-11-12');
+INSERT INTO Patients VALUES('P123', 'PH33', 22333, '2015-06-13');
+INSERT INTO Patients VALUES('P124', 'PH44', 22333, '2015-05-12');
+INSERT INTO Patients VALUES('P125', 'PH22', 99888, '2015-06-13');
+--will be used for outpat.
+INSERT INTO Patients VALUES('P126', 'PH44', 22333, '2015-07-12');
+INSERT INTO Patients VALUES('P127', 'PH33', 99888, '2015-07-13');
+INSERT INTO Patients VALUES('P128', 'PH44', 33568, '2015-07-12');
+INSERT INTO Patients VALUES('P666', 'PH33', 59566, '2015-11-15');
+INSERT INTO Patients VALUES('P777', 'PH33', 99888, '2015-11-13');
+INSERT INTO Patients VALUES('P888', 'PH22', 33568, '2015-11-12');
+INSERT INTO Patients VALUES('P999', 'PH33', 00000, '2015-09-13');
+
+
+INSERT INTO Symptoms VALUES('P111', 'wheezing');
+INSERT INTO Symptoms VALUES('P222', 'vomit');
+INSERT INTO Symptoms VALUES('P333', 'bleeding');
+INSERT INTO Symptoms VALUES('P444', 'stomach pain');
+INSERT INTO Symptoms VALUES('P555', 'nauseous');
+
+--Resident
+INSERT INTO Residents VALUES('P111', '998742' ,'01', '2015-11-12', '200');
+INSERT INTO Residents VALUES('P222', '998742', '02', '2015-11-13', '201');
+INSERT INTO Residents VALUES('P333', '998742', '03', '2015-11-28', '202');
+INSERT INTO Residents VALUES('P444', '845614', '02', '2015-11-13', '301');
+INSERT INTO Residents VALUES('P555', '564122', '03', '2015-11-28', '402');
+
+INSERT INTO Residents VALUES('P123', '845614', '01', '2015-11-13', '300');
+INSERT INTO Residents VALUES('P124', '564122', '02', '2015-11-28', '401');
+INSERT INTO Residents VALUES('P125', '845614', '03', '2015-11-13', '302');
+
+--Outpatient
+INSERT INTO Outpatients VALUES('P666','Check-Up');
+INSERT INTO Outpatients VALUES('P777','Hurting');
+INSERT INTO Outpatients VALUES('P888','Feel Sick');
+INSERT INTO Outpatients VALUES('P888', 'Soreness');
+INSERT INTO Outpatients VALUES('P999', 'Back Pain');
+
+INSERT INTO Outpatients VALUES('P126','Feel Sick');
+INSERT INTO Outpatients VALUES('P127', 'Soreness');
+INSERT INTO Outpatients VALUES('P128', 'Back Pain');
+
+
+--Visits between out patient and physician
+INSERT INTO Visits VALUES ('PH33', 'P666', 'Check-Up' ,'2015-11-16');
+INSERT INTO Visits VALUES ('PH44', 'P777', 'Hurting'  ,'2015-12-20');
+INSERT INTO Visits VALUES ('PH44', 'P888', 'Feel Sick','2015-12-20');
+INSERT INTO Visits VALUES ('PH33', 'P888', 'Soreness', '2015-11-16');
+INSERT INTO Visits VALUES ('PH44', 'P126', 'Feel Sick','2015-12-20');
+INSERT INTO Visits VALUES ('PH33', 'P127', 'Soreness', '2015-11-16');
+
+--Comments
+INSERT INTO Comments VALUES ('P666', '2015-11-16','Patient vital signs normal.');
+INSERT INTO Comments VALUES ('P666', '2015-11-16','Recomment rest.');
+INSERT INTO Comments VALUES ('P777', '2015-12-20','Patient vital signs normal, but blood pressure is high');
+INSERT INTO Comments VALUES ('P888','2015-12-20','Patient reports knee pain');
+INSERT INTO Comments VALUES ('P888','2015-12-20','Over the counter pain medication recommended.');
+
+--Visitors
+INSERT INTO Visitor VALUES('V111','Toucan Sam', '111111');
+INSERT INTO Visitor VALUES('V222','Trix Rabbit', '222222');
+INSERT INTO Visitor VALUES('V333','Cookie Monster', '333333');
+
+
+--VisitorData
+INSERT INTO VisitorData VALUES('V111','P111','2015-12-21');
+INSERT INTO VisitorData VALUES('V222','P222','2015-12-22');
+INSERT INTO VisitorData VALUES('V333','P333','2015-12-23');
+
+--Nurse
+--RegisteredNurse
+INSERT INTO ZipLocation VALUES(90801, 'Norman', 'Oklahoma');
+INSERT INTO People VALUES('E1009', 90801, 'Walnut Ave', 'Howard', 'White', '512-472-6276', '1970-05-22');
+INSERT INTO Employee VALUES('E1009', '1992-06-04');
+INSERT INTO Nurse(nurseID, facilitiesID, certificate) VALUES('E1009', '998742', 'RN');
+INSERT INTO RegisteredNurse VALUES('E1009', 'Bachelors');
+
+--Nurse
+--RegisteredNurse
+INSERT INTO ZipLocation VALUES(99421, 'Miami', 'Florida');
+INSERT INTO People VALUES('E1010', 99421, 'Maple Ave', 'Billy', 'Bob', '113-418-3272', '1950-05-22');
+INSERT INTO Employee VALUES('E1010', '1990-06-04');
+INSERT INTO Nurse(nurseID, facilitiesID, certificate) VALUES('E1010', '845614', 'RN');
+INSERT INTO RegisteredNurse VALUES('E1010', 'Bachelors');
+
+--Nurse
+INSERT INTO ZipLocation VALUES(90823, 'Tucson', 'Arizona');
+INSERT INTO People VALUES('E1011', 90823, 'Almond Ave', 'Christine', 'Pham', '201-748-1222', '1989-01-15');
+INSERT INTO Employee VALUES('E1011', '2010-02-10');
+INSERT INTO Nurse VALUES('E1011', '998742', 'CNA', 'E1009');
+
+--Nurse
+--RegisteredNurse
+--NurseInCharge
+INSERT INTO ZipLocation VALUES(91801, 'Columbus', 'Georgia');
+INSERT INTO People VALUES('E1012', 91801, 'Elm Ave', 'George', 'Moore', '872-133-2272', '1965-04-23');
+INSERT INTO Employee VALUES('E1012', '1986-03-11');
+INSERT INTO Nurse(nurseID, facilitiesID, certificate) VALUES('E1012', '845614', 'RN');
+INSERT INTO RegisteredNurse VALUES('E1012', 'Masters');
+INSERT INTO NurseInCharge VALUES('E1012', '564122');
+
+--Nurse
+--RegisteredNurse
+--NurseInCharge
+INSERT INTO ZipLocation VALUES(93431, 'Cleveland', 'Ohio');
+INSERT INTO People VALUES('E1013', 93431, 'Fire Ave', 'Jorge', 'Moose', '990-123-6272', '1964-04-23');
+INSERT INTO Employee VALUES('E1013', '1989-03-11');
+INSERT INTO Nurse(nurseID, facilitiesID, certificate) VALUES('E1013', '998742', 'RN');
+INSERT INTO RegisteredNurse VALUES('E1013', 'Masters');
+INSERT INTO NurseInCharge VALUES('E1013', '998742');
+ 
+--Nurse
+--RegisteredNurse
+--NurseInCharge
+INSERT INTO ZipLocation VALUES(93431, 'Los Angeles', 'California');
+INSERT INTO People VALUES('E1020', 93431, 'Flora St.', 'Mario', 'Martinez', '811-201-6113', '1967-01-13');
+INSERT INTO Employee VALUES('E1020', '1988-02-11');
+INSERT INTO Nurse(nurseID, facilitiesID, certificate) VALUES('E1020', '998742', 'RN');
+INSERT INTO RegisteredNurse VALUES('E1020', 'Masters');
+INSERT INTO NurseInCharge VALUES('E1020', '845614');
+ 
+ --Staff
+INSERT INTO ZipLocation VALUES (90762, 'Little Rock', 'Arkansas');
+INSERT INTO People VALUES('E1015', 90762, 'Oak Ave', 'Max', 'Paine', '899-178-4473', '1970-07-23');
+INSERT INTO Employee VALUES('E1015', '1980-05-22');
+INSERT INTO Staff VALUES('E1015', 'Medical Assistant');
+
+INSERT INTO ZipLocation VALUES (92766, 'Santa Ana', 'California');
+INSERT INTO People VALUES('E1016', 92766, 'Ross St.', 'Lenny', 'White', '900-111-8872', '1980-05-18');
+INSERT INTO Employee VALUES('E1016', '2000-03-29');
+INSERT INTO Staff VALUES('E1016', 'Medical Assistant');
+
+INSERT INTO ZipLocation VALUES (92764, 'Santa Ana', 'California');
+INSERT INTO People VALUES('E1017', 92764, '1st St.', 'Carl', 'Brown', '988-728-3312', '1979-06-21');
+INSERT INTO Employee VALUES('E1017', '1997-04-24');
+INSERT INTO Staff VALUES('E1017', 'Medical Assistant');
+
+INSERT INTO ZipLocation VALUES (94765, 'Denver', 'Colorado');
+INSERT INTO People VALUES('E1018', 94765, '3rd St.', 'Michael', 'Powe', '778-711-2472', '1975-04-23');
+INSERT INTO Employee VALUES('E1018', '1998-05-27');
+INSERT INTO Staff VALUES('E1018', 'Medical Transcriptionist');
+
+INSERT INTO ZipLocation VALUES (94769, 'Portland', 'Maine');
+INSERT INTO People VALUES('E1019', 94765, '3rd St.', 'Katy', 'Stevens', '792-118-4332', '1985-03-18');
+INSERT INTO Employee VALUES('E1019', '2005-04-18');
+INSERT INTO Staff VALUES('E1019', 'Medical Transcriptionist');
+ 
+ 
+----VIEWS -----------------------------------------------------------------
+
+--1)
+create view EmployeesHired as
+select firstName as "First Name", lastName as "Last Name", 
+hireDate as "Hired Dated" from People p , Employee e
+where  e.employeeID=p.personID;
+
+SELECT * FROM EmployeesHired;
+
+--2)
+CREATE VIEW NursesInCharge AS
+SELECT Nurse.nurseID AS 'Nurse ID', firstName AS 'First Name', lastName AS 'Last Name',
+phone AS 'Phone Number', name  AS 'Care Center' FROM Facilities, People
+INNER JOIN Employee ON EmployeeID = People.personID
+INNER JOIN Nurse ON Nurse.nurseID = Employee.employeeID
+INNER JOIN RegisteredNurse ON RegisteredNurse.rNurseID = Nurse.nurseID
+INNER JOIN NurseInCharge ON NurseInCharge.rNurseID = RegisteredNurse.rNurseID
+WHERE NurseInCharge.facilitiesID = Facilities.facilitiesID;
+
+SELECT * FROM NursesInCharge;
+
+--3)
+CREATE VIEW GoodTechnician AS
+SELECT Technician.technicianID AS 'Technician ID', firstName AS 'First Name', lastName AS 'Last Name',
+COUNT(skill) AS 'No. of Skills' from People
+INNER JOIN Employee ON Employee.employeeID = People.personID
+INNER JOIN Technician ON Technician.technicianID = Employee.employeeID
+INNER JOIN SkillsTechnician ON Technician.technicianID = SkillsTechnician.technicianID
+Group by SkillsTechnician.technicianID;
+
+Select * from GoodTechnician;
+
+--View 4
+CREATE VIEW CareCenterTotalBed AS
+SELECT name, COUNT(name) As "TotalBeds" FROM 
+Facilities INNER JOIN CareCenter ON Facilities.facilitiesID = CareCenter.facilitiesID
+INNER JOIN Bed ON CareCenter.facilitiesID = Bed.facilitiesID
+GROUP BY name;
+
+CREATE VIEW CareCenterTakenBed AS
+SELECT name, COUNT(name) As "TakenBeds" FROM 
+Facilities INNER JOIN CareCenter ON Facilities.facilitiesID = CareCenter.facilitiesID
+INNER JOIN Bed ON CareCenter.facilitiesID = Bed.facilitiesID
+INNER JOIN Residents ON Bed.roomNumber = Residents.roomNumber 
+GROUP BY name;
+
+CREATE VIEW CareCenterBedsView AS
+SELECT Facilities.name, CareCenterTotalBed.TotalBeds, coalesce(CareCenterTakenBed.TakenBeds,0) 
+AS "TakenBeds",CareCenterTotalBed.TotalBeds - coalesce(CareCenterTakenBed.TakenBeds,0) AS "FreeBeds" FROM
+CareCenterTotalBed INNER JOIN Facilities ON Facilities.name = CareCenterTotalBed.name LEFT OUTER JOIN CareCenterTakenBed
+ON CareCenterTotalBed.name = CareCenterTakenBed.name;
+
+SELECT * FROM CareCenterBedsView;
+--end View 4
+
+--view 5
+create view OutPatientNotVisited as select personID as "Patient ID" , firstName, lastName from People p inner join Patients
+on p.personID = Patients.patientID inner join Outpatients o on
+Patients.patientID = o.patientID left join Visits v
+on o.patientID = v.patientID
+where v.patientID is null;
+
+select * from OutPatientNotVisited;
+--end view
+
+
+--SAVE Queries here ...............................................................................................
+
+--1
+SELECT PersonID AS 'Staff ID', firstName AS 'First Name', lastName AS 'Last Name', jobClass AS 'Job Class' FROM People
+INNER JOIN Employee ON Employee.employeeID = People.personID
+INNER JOIN Staff ON Employee.employeeID = Staff.staffID;
+-- End 1
+
+--2
+SELECT Volunteer.volunteerID AS 'Volunteer ID', firstName AS 'First Name', 
+lastName AS 'Last Name', skill AS 'Skill'FROM People
+INNER JOIN Volunteer ON People.personID = Volunteer.volunteerID
+LEFT JOIN SkillsVolunteer ON Volunteer.volunteerID = SkillsVolunteer.volunteerID
+WHERE SkillsVolunteer.volunteerID IS NULL;
+
+--3
+SELECT Volunteer.volunteerID AS 'Volunteer ID', firstName AS 'First Name', lastName AS 'Last Name' from People
+INNER JOIN Patients  ON People.personID = Patients.patientID
+INNER JOIN Volunteer ON Volunteer.volunteerID = Patients.patientID;
+
+--4
+Select Visits.patientID AS 'Patient ID', firstName AS 'First Name', lastName AS 'Last Name',
+COUNT(Visits.patientID) AS 'No. of Visits' FROM People
+INNER JOIN Patients ON Patients.patientID = People.personID
+INNER JOIN Visits ON Visits.patientID = Patients.patientID
+GROUP BY (Visits.patientID) HAVING COUNT(Visits.patientID) = 1;
+
+
+--5
+SELECT nos.skill AS "Types of Skill", COUNT(*) AS "Number of People with skill"
+FROM (SELECT skill FROM SkillsVolunteer
+UNION ALL
+SELECT skill FROM SkillsTechnician) AS nos
+GROUP BY skill;
+-- end 5
+
+--6
+SELECT Facilities.name, Facilities.location, CareCenter.facilitiesID, CareCenter.carecenterType FROM
+(SELECT * FROM CareCenterBedsView) t1 INNER JOIN Facilities
+ON t1.name = Facilities.name INNER JOIN CareCenter ON Facilities.facilitiesID = CareCenter.facilitiesID
+WHERE t1.TakenBeds = t1.TotalBeds;
+--end 6
+
+--7
+SELECT People.firstName, People.lastName, Facilities.name, Nurse.facilitiesID FROM
+People INNER JOIN Employee on People.personID =Employee.employeeID
+INNER JOIN Nurse ON Nurse.nurseID = Employee.employeeID
+INNER JOIN CareCenter ON Nurse.facilitiesID = CareCenter.facilitiesID
+INNER JOIN Facilities ON CareCenter.facilitiesID = Facilities.facilitiesID
+WHERE Nurse.nurseID NOT IN (SELECT NurseInCharge.rNurseID FROM NurseInCharge) AND Nurse.certificate = 'RN';
+--end 7
+
+--8
+SELECT People.firstName, People.lastName, Facilities.name, 
+Nurse.facilitiesID AS "Associated Care Center", 
+NurseInCharge.facilitiesID AS "Care Center they are in charge of" FROM
+People INNER JOIN Employee on People.personID =Employee.employeeID
+INNER JOIN Nurse ON Nurse.nurseID = Employee.employeeID
+INNER JOIN CareCenter ON Nurse.facilitiesID = CareCenter.facilitiesID
+INNER JOIN NurseInCharge ON CareCenter.facilitiesID = NurseInCharge.facilitiesID
+INNER JOIN Facilities ON NurseInCharge.facilitiesID = Facilities.facilitiesID
+WHERE Nurse.nurseID = NurseInCharge.rNurseID AND Nurse.certificate = 'RN';
+--end 8
+
+--9
+
+select firstName, lastName, skill, department from People inner join Technician t
+on People.personID = t.technicianID right join SkillsTechnician s natural join LabAssigned on
+t.technicianID =s.technicianID;
+--9
+
+
+--10
+select p.firstName, p.lastName, r.admitted from People p, Patients,Residents r
+where p.personID = Patients.patientID and
+Patients.patientID = r.patientID and
+admitted > (select max(hireDate) from Employee);
+--end 10
+
+
+--11
+select firstName, lastName, p.contactDate, r.admitted, datediff(r.admitted, p.contactDate) as diff from 
+People, Patients p, Residents r where
+People.personID = p.patientID and
+p.patientID = r.patientID and
+datediff(r.admitted, p.contactDate) <8;
+
+--end 11
+
+--12
+
+
+select firstName, lastName,contactDate, visitDate, 
+datediff(visitDate, contactDate) as "Days Difference"  from
+People p inner join  
+Patients pa natural join
+Outpatients natural join
+Visits on
+p.personID = pa.patientID where
+datediff(visitDate,contactDate) > 7 ;
+
+--end 12
+
+--13
+select People.personID as "Physician ID", People.firstName 
+as "First Name",People.lastname as  "Last Name",  
+count(People.personID) as "Visits Today", Visits.visitDate from People 
+inner join Physician on People.personID = Physician.physicianID
+inner join Visits on Physician.physicianID = Visits.physicianID 
+GROUP BY Visits.visitDate HAVING count(People.personID) > 2;
+--end 13
+
+--14
+select Patients.physicianID,People.firstName as "Physician First Name",People.lastName 
+as "Physician Last Name"  ,  count(Residents.patientID) as "Residents" ,
+count(Outpatients.patientID) as "OutPatients" from Patients
+left outer join Residents on Patients.patientID = Residents.patientID
+left outer join Outpatients on Patients.patientID = Outpatients.patientID
+inner join Physician on Patients.physicianID = Physician.physicianID
+inner join People on Physician.physicianID = People.personID
+group by Patients.physicianID
+Having count(Residents.patientID) < count(Outpatients.patientID);
+--end 14
+
+--15
+select distinct Patients.patientId as "Patient ID",Visits.visitDate as "Visit Day",
+People.personID as "Visited but Not Responsible",
+People.firstName as "Physician First Name",People.lastname as "Physician Last Name", 
+Patients.physicianID as "Responsible" from People
+inner join Physician on People.personID = PhysicianID
+inner join Visits on Visits.physicianID = Physician.physicianID
+inner join Patients on Patients.patientID = Visits.patientID where
+Patients.physicianID != Visits.physicianID; 
+--end 15
+
+--3 Business Rule Queries ...............................................................................................
+
+--1 Patients that have insurance
+SELECT firstName, lastName, Insurance.insuranceName
+FROM People INNER JOIN Patients
+ON People.personID = Patients.patientID
+INNER JOIN Insurance 
+ON Patients.medicalID = Insurance.medicalID
+WHERE Patients.medicalID != 00000;
+--end 1
+
+--2 
+--skill and care center
+create view VolunteerInfo as
+select firstName, lastName, a.volunteerID, careCenterType, coalesce(b.skill, 'None') as skill from
+People p inner join Volunteer a  on 
+p.personID = a.volunteerID
+left join SkillsVolunteer b 
+on a.volunteerID=b.volunteerID
+inner join CareCenter on
+a.facilitiesID = CareCenter.facilitiesID;
+
+--end rule 2
+
+--3  #5
+
+
+create view StaffComputerTasks as 
+select firstName as "First Name", lastName as "Last Name" , count(People.personID) 
+as "Degrees" from People
+inner join Employee on Employee.employeeID = People.personID
+inner join Staff on Employee.employeeID = Staff.staffID
+inner join Degree on Staff.staffID = Degree.staffID
+group by People.personID HAVING  count(People.personID) > 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
